@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  mongodb:
+    image: mongo:latest
+    environment:
+      - MONGODB_DATABASE="booking"
+    ports:
+      - 27017:27017
+
+  nest-api:
+    build:
+      context: .
+      dockerfile: dockerfile
+      target: development
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    container_name: nest-api 
+    restart: always
+    ports:
+      - 3000:3000
+    command: npm run start:dev
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
