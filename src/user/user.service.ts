@@ -99,6 +99,7 @@ export class UserService {
     // const users = await this.userRepository.find(query).exec();
     // return users.map((user) => user.toJSON() as unknown as UserDocument);
     const users = await this.userRepository.find(query).exec();
+    // TODO: change resp fields
     return users.map((user) => {
       user = user.toJSON();
       delete user.passwordHash;
