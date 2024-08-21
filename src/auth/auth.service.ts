@@ -2,12 +2,15 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  Headers,
+  HttpStatus,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { LoginUserDto } from './dto';
-import { CreateUserDto } from '../user/dto';
+import { CreateUserDto, RegisterClientDto } from '../user/dto';
+import { CreateUserRO, RegisterClientRO, LoginUserRO } from './auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -16,8 +19,7 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  // TODO: add typeRO
-  async login(loginUserDto: LoginUserDto): Promise<any> {
+  async login(loginUserDto: LoginUserDto): Promise<LoginUserRO> {
     const { email, password } = loginUserDto;
 
     const user = await this.userService.findByEmail(loginUserDto.email);
@@ -33,22 +35,51 @@ export class AuthService {
       token: this.jwtService.sign({
         email,
       }),
-      _id: user._id,
+      // id: user._id,
       email: user.email,
       name: user.name,
       contactPhone: user.contactPhone,
     };
   }
 
-  // TODO: add typeRO
-  async register(createUserDto: CreateUserDto): Promise<any> {
-    const user = await this.userService.create(createUserDto);
+  async registerClient(
+    registerClientDto: RegisterClientDto,
+  ): Promise<RegisterClientRO> {
+    const user = await this.userService.registerClient(registerClientDto);
     return {
       token: this.jwtService.sign({ email: user.email }),
-      _id: user._id,
+      id: user._id,
+      email: user.email,
+      name: user.name,
+    };
+  }
+
+  async createUser(createUserDto: CreateUserDto): Promise<CreateUserRO> {
+    const user = await this.userService.createUser(createUserDto);
+    return {
+      id: user._id,
       email: user.email,
       name: user.name,
       contactPhone: user.contactPhone,
+      role: user.role,
     };
+  }
+
+  async getUserInfo(
+    @Headers('authorization') authorization: string,
+  ): Promise<any> {
+    try {
+      const decodedToken = this.jwtService.verify(authorization);
+      const email = decodedToken['email'];
+      const user = await this.userService.findByEmail(email);
+      delete user.passwordHash;
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'User retrieved successfully',
+        result: user,
+      };
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
   }
 }

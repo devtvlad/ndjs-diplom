@@ -1,7 +1,6 @@
 import { IsString, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
-import { Role } from '../user.interface';
 
-export class CreateUserDto {
+export class RegisterClientDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(5)
@@ -25,9 +24,4 @@ export class CreateUserDto {
   @MinLength(3)
   @MaxLength(64)
   contactPhone: string;
-
-  @IsString()
-  @MinLength(5)
-  @MaxLength(7)
-  role: Role;
 }

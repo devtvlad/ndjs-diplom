@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto, SearchUserParamsDto } from './dto';
+import { CreateUserDto, SearchUserParamsDto, RegisterClientDto } from './dto';
 import { User, UserDocument } from './user.schema';
 import { ObjectId } from 'mongodb';
 
@@ -17,7 +17,28 @@ export class UserService {
     @InjectConnection() private connection: Connection,
   ) {}
 
-  public async create(data: CreateUserDto): Promise<UserDocument> {
+  public async registerClient(data: RegisterClientDto): Promise<UserDocument> {
+    const existing = await this.userRepository
+      .findOne({ email: data.email })
+      .exec();
+    if (existing) {
+      throw new ConflictException('User with this email already exists');
+    }
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const newUser = new this.userRepository({
+      email: data.email,
+      passwordHash: hashedPassword,
+      name: data.name,
+      contactPhone: data.contactPhone,
+    });
+    const savedUser = await newUser.save();
+
+    delete savedUser.passwordHash;
+    return savedUser.toJSON() as unknown as UserDocument;
+  }
+
+  public async createUser(data: CreateUserDto): Promise<UserDocument> {
     const existing = await this.userRepository
       .findOne({ email: data.email })
       .exec();

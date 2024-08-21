@@ -18,7 +18,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('token not found');
     }
 
-    // TODO validate token
+    // TODO: validate token
     if (token !== 'MY_AUTH_TOKEN') {
       throw new UnauthorizedException('invalid token');
     }
