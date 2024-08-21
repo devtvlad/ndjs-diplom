@@ -79,6 +79,7 @@ export class UserService {
     return user.toJSON() as unknown as UserDocument;
   }
 
+  // TODO: add limit & offset
   public async findAll(params: SearchUserParamsDto): Promise<UserDocument[]> {
     const query: any = {};
 
