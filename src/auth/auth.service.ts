@@ -2,8 +2,6 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  Headers,
-  HttpStatus,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -63,23 +61,5 @@ export class AuthService {
       contactPhone: user.contactPhone,
       role: user.role,
     };
-  }
-
-  async getUserInfo(
-    @Headers('authorization') authorization: string,
-  ): Promise<any> {
-    try {
-      const decodedToken = this.jwtService.verify(authorization);
-      const email = decodedToken['email'];
-      const user = await this.userService.findByEmail(email);
-      delete user.passwordHash;
-      return {
-        statusCode: HttpStatus.OK,
-        message: 'User retrieved successfully',
-        result: user,
-      };
-    } catch (error) {
-      throw new UnauthorizedException();
-    }
   }
 }
