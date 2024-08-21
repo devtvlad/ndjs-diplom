@@ -62,4 +62,13 @@ export class AuthService {
       role: user.role,
     };
   }
+
+  async logout(token: string) {
+    try {
+      await this.jwtService.verify(token);
+      return { message: 'Logout successful' };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid Token');
+    }
+  }
 }
