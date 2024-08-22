@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class ValidationPipe implements PipeTransform {
@@ -22,7 +23,7 @@ export class ValidationPipe implements PipeTransform {
   }
 
   private toValidate(metatype: Function): boolean {
-    const types = [String, Boolean, Number, Array, Object];
+    const types = [String, Boolean, Number, Array, Object, ObjectId];
     return !types.find((type) => metatype === type);
   }
 }
