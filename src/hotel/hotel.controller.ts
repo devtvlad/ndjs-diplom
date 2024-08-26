@@ -41,9 +41,8 @@ import { Response } from 'express';
 export class HotelController {
   constructor(private readonly hotelService: HotelService) {}
 
-  @Get('/common/hotel-rooms/')
-  // TODO: add query params
   // TODO: add case for non auth and client
+  @Get('/common/hotel-rooms/')
   async getAll(
     @Query(new ValidationPipe())
     searchHotelRoomParamsDto: SearchHotelRoomParamsDto,
@@ -78,13 +77,13 @@ export class HotelController {
   // TODO: add query params
   async getHotelsByAdmin(
     @GetUser() user: User,
-    @Query(new ValidationPipe()) params: SearchHotelParamsDto,
+    @Query(new ValidationPipe()) searchHotelParamsDto: SearchHotelParamsDto,
   ): Promise<Hotel[]> {
     // TODO: create separete check for admin
     if (user.role !== Role.Admin) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
     }
-    return await this.hotelService.getHotels(params);
+    return await this.hotelService.getHotels(searchHotelParamsDto);
   }
 
   @Put('/admin/hotels/:id')

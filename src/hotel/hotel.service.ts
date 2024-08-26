@@ -71,22 +71,23 @@ export class HotelService {
     return savedHotel;
   }
 
-  // TODO: add limit & offset
-  public async getHotels(params: SearchHotelParamsDto): Promise<Hotel[]> {
+  public async getHotels(
+    searchHotelRoomParamsDto: SearchHotelParamsDto,
+  ): Promise<Hotel[]> {
     const query: any = {};
 
     // search by <param> with case sensitive
-
-    if (params.title) {
-      query.title = { $regex: params.title, $options: 'i' };
+    if (searchHotelRoomParamsDto.title) {
+      query.title = { $regex: searchHotelRoomParamsDto.title, $options: 'i' };
     }
 
-    const hotels = await this.hotelRepository.find(query).exec();
-    // TODO: change resp fields
-    return hotels.map((hotel) => {
-      hotel = hotel.toJSON();
-      return hotel as HotelDocument;
-    });
+    const hotelRooms = await this.hotelRepository
+      .find({ title: query.title })
+      .skip(searchHotelRoomParamsDto.offset)
+      .limit(searchHotelRoomParamsDto.limit)
+      .exec();
+
+    return hotelRooms as unknown as Hotel[];
   }
 
   public async updateHotel(
