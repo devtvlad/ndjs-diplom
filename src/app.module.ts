@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { AuthController } from './auth/auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { HotelModule } from './hotel/hotel.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { JwtModule } from '@nestjs/jwt';
     UserModule,
     AuthModule,
     PassportModule,
+    HotelModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: {
