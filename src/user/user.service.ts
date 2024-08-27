@@ -79,27 +79,34 @@ export class UserService {
     return user.toJSON() as unknown as UserDocument;
   }
 
-  // TODO: add limit & offset
-  public async findAll(params: SearchUserParamsDto): Promise<UserDocument[]> {
+  public async findAll(
+    searchUserParamsDto: SearchUserParamsDto,
+  ): Promise<UserDocument[]> {
     const query: any = {};
 
     // search by <param> with case sensitive
-
-    if (params.email) {
-      query.email = { $regex: params.email, $options: 'i' };
+    if (searchUserParamsDto.email) {
+      query.email = { $regex: searchUserParamsDto.email, $options: 'i' };
     }
 
-    if (params.name) {
-      query.name = { $regex: params.name, $options: 'i' };
+    if (searchUserParamsDto.name) {
+      query.name = { $regex: searchUserParamsDto.name, $options: 'i' };
     }
 
-    if (params.contactPhone) {
-      query.contactPhone = { $regex: params.contactPhone, $options: 'i' };
+    if (searchUserParamsDto.contactPhone) {
+      query.contactPhone = {
+        $regex: searchUserParamsDto.contactPhone,
+        $options: 'i',
+      };
     }
 
     // const users = await this.userRepository.find(query).exec();
     // return users.map((user) => user.toJSON() as unknown as UserDocument);
-    const users = await this.userRepository.find(query).exec();
+    const users = await this.userRepository
+      .find(query)
+      .skip(searchUserParamsDto.offset)
+      .limit(searchUserParamsDto.limit)
+      .exec();
     // TODO: change resp fields
     return users.map((user) => {
       user = user.toJSON();

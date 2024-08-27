@@ -44,12 +44,12 @@ export class UserController {
   @UsePipes(new ValidationPipe())
   async findAllByManager(
     @GetUser() user,
-    @Query(new ValidationPipe()) params: SearchUserParamsDto,
+    @Query(new ValidationPipe()) searchUserParamsDto: SearchUserParamsDto,
   ): Promise<User[]> {
     if (user.role !== Role.Manager) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
     }
-    return await this.userService.findAll(params);
+    return await this.userService.findAll(searchUserParamsDto);
   }
 
   // @Get(':id')
