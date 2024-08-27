@@ -30,7 +30,7 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ValidationPipe())
   async findAllByAdmin(
-    @GetUser() user,
+    @GetUser() user: User,
     @Query(new ValidationPipe()) params: SearchUserParamsDto,
   ): Promise<User[]> {
     if (user.role !== Role.Admin) {
@@ -43,7 +43,7 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ValidationPipe())
   async findAllByManager(
-    @GetUser() user,
+    @GetUser() user: User,
     @Query(new ValidationPipe()) searchUserParamsDto: SearchUserParamsDto,
   ): Promise<User[]> {
     if (user.role !== Role.Manager) {
