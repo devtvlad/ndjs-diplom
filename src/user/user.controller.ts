@@ -20,6 +20,7 @@ import { ValidationPipe } from '../common/validation.pipe';
 import { SearchUserParamsDto } from './dto';
 import { GetUser } from '../user/user.decorator';
 import { Role } from '../user/user.interface';
+import { checkUserAdminRole } from '../common/utils';
 
 @UseInterceptors(LoggingInterceptor)
 @Controller('api')
@@ -31,12 +32,10 @@ export class UserController {
   @UsePipes(new ValidationPipe())
   async findAllByAdmin(
     @GetUser() user: User,
-    @Query(new ValidationPipe()) params: SearchUserParamsDto,
+    @Query(new ValidationPipe()) searchUserParamsDto: SearchUserParamsDto,
   ): Promise<User[]> {
-    if (user.role !== Role.Admin) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
-    }
-    return await this.userService.findAll(params);
+    checkUserAdminRole(user);
+    return await this.userService.findAll(searchUserParamsDto);
   }
 
   @Get('/manager/users/')
@@ -46,6 +45,7 @@ export class UserController {
     @GetUser() user: User,
     @Query(new ValidationPipe()) searchUserParamsDto: SearchUserParamsDto,
   ): Promise<User[]> {
+    // TODO: think maybe I should add this role check in utils too
     if (user.role !== Role.Manager) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
     }

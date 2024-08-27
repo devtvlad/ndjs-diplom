@@ -31,10 +31,10 @@ import { FileValidationPipe } from '../common/file.validation.pipe';
 import { ParseObjectIdPipe } from '../common/parse.objectid.pipe';
 import { ObjectId } from 'mongodb';
 import { GetUser } from '../user/user.decorator';
-import { Role } from '../user/user.interface';
 import { User } from '../user/user.schema';
 import { Res } from '@nestjs/common';
 import { Response } from 'express';
+import { checkUserAdminRole } from '../common/utils';
 
 @UseInterceptors(LoggingInterceptor)
 @Controller('api')
@@ -64,10 +64,7 @@ export class HotelController {
     @GetUser() user: User,
     @Body(new ValidationPipe()) createHotelDto: CreateHotelDto,
   ): Promise<Hotel> {
-    // TODO: create separete check for admin
-    if (user.role !== Role.Admin) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
-    }
+    checkUserAdminRole(user);
     return await this.hotelService.createHotel(createHotelDto);
   }
 
@@ -79,10 +76,7 @@ export class HotelController {
     @GetUser() user: User,
     @Query(new ValidationPipe()) searchHotelParamsDto: SearchHotelParamsDto,
   ): Promise<Hotel[]> {
-    // TODO: create separete check for admin
-    if (user.role !== Role.Admin) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
-    }
+    checkUserAdminRole(user);
     return await this.hotelService.getHotels(searchHotelParamsDto);
   }
 
@@ -94,10 +88,7 @@ export class HotelController {
     @Param('id', ParseObjectIdPipe) id: ObjectId,
     @Body(new ValidationPipe()) updateHotelDto: UpdateHotelDto,
   ): Promise<Hotel> {
-    // TODO: create separete check for admin
-    if (user.role !== Role.Admin) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
-    }
+    checkUserAdminRole(user);
     return await this.hotelService.updateHotel(id, updateHotelDto);
   }
 
@@ -110,10 +101,7 @@ export class HotelController {
     @Body(new ValidationPipe()) createHotelRoomDto: CreateHotelRoomDto,
     @UploadedFiles(new FileValidationPipe()) files: Array<any>, // TODO: fix type
   ): Promise<HotelRoom> {
-    // TODO: create separete check for admin
-    if (user.role !== Role.Admin) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
-    }
+    checkUserAdminRole(user);
     return await this.hotelService.createHotelRoom(createHotelRoomDto, files);
   }
 
@@ -145,10 +133,7 @@ export class HotelController {
     @Body(new ValidationPipe()) updateHotelRoomDto: UpdateHotelRoomDto,
     @UploadedFiles(new FileValidationPipe()) files: Array<any>, // TODO: fix type
   ): Promise<HotelRoom> {
-    // TODO: create separete check for admin
-    if (user.role !== Role.Admin) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
-    }
+    checkUserAdminRole(user);
     return await this.hotelService.updateHotelRoom(
       id,
       updateHotelRoomDto,
