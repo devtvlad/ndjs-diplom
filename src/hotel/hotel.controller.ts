@@ -33,19 +33,21 @@ import { User } from '../user/user.schema';
 import { Res } from '@nestjs/common';
 import { Response } from 'express';
 import { checkUserAdminRole } from '../common/utils';
+import { CurrentUserInspectorGuard } from '../auth/current.user.inspector.guard';
 
 @UseInterceptors(LoggingInterceptor)
 @Controller('api')
 export class HotelController {
   constructor(private readonly hotelService: HotelService) {}
 
-  // TODO: add case for non auth and client
   @Get('/common/hotel-rooms/')
+  @UseGuards(CurrentUserInspectorGuard)
   async getAll(
+    @GetUser() user: User,
     @Query(new ValidationPipe())
     searchHotelRoomParamsDto: SearchHotelRoomParamsDto,
   ): Promise<HotelRoom[]> {
-    return await this.hotelService.getAll(searchHotelRoomParamsDto);
+    return await this.hotelService.getAll(searchHotelRoomParamsDto, user?.role);
   }
 
   @Get('/common/hotel-rooms/:id')

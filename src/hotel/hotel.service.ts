@@ -22,6 +22,7 @@ import {
   HotelRoomDocument,
 } from './hotel.schema';
 import { ObjectId } from 'mongodb';
+import { Role } from '../user/user.interface';
 
 @Injectable()
 export class HotelService {
@@ -34,15 +35,29 @@ export class HotelService {
 
   public async getAll(
     searchHotelRoomParamsDto: SearchHotelRoomParamsDto,
+    role: Role | undefined,
   ): Promise<HotelRoom[]> {
     const { limit, offset, hotel } = searchHotelRoomParamsDto;
 
-    const hotelRooms = await this.hotelRoomRepository
-      .find({ hotel: hotel })
-      .skip(offset)
-      .limit(limit)
-      .exec();
+    let hotelRooms = undefined;
 
+    // show only enabled (isEnabled=true) for non auth users and clients
+    if (role === Role.Client || role === undefined) {
+      hotelRooms = await this.hotelRoomRepository
+        .find({ hotel: hotel, isEnabled: true })
+        .skip(offset)
+        .limit(limit)
+        .exec();
+    } // show any enabled (isEnabled=true) or disabled (isEnabled=false) for admins and managers
+    else if (role === Role.Admin || role === Role.Manager) {
+      hotelRooms = await this.hotelRoomRepository
+        .find({ hotel: hotel })
+        .skip(offset)
+        .limit(limit)
+        .exec();
+    }
+
+    // TODO: change resp fields
     return hotelRooms as unknown as HotelRoom[];
   }
 
