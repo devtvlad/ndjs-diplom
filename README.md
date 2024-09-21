@@ -15,5 +15,5 @@
 ## Запуск приложения
 ```bash
 # Run docker container on development with watch mode
-$ npm start
+$ docker compose up
 ```
