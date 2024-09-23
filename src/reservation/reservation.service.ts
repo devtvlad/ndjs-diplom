@@ -40,40 +40,30 @@ export class ReservationService {
     if (existingHotelRoom.isEnabled === false) {
       throw new ConflictException(`The room with id=${hotelRoom} is disabled`);
     }
-    // TODO: add negative case for starDate > endDate
+    // Check for startDate > endDate
+    if (new Date(dateStart) > new Date(dateEnd)) {
+      throw new ConflictException('Start date cannot be later than end date');
+    }
 
-    // TODO: add validation for date (for previous dates)
+    // Check if the reservation dates are in the past
+    const now = new Date();
+    if (new Date(dateStart) < now || new Date(dateEnd) < now) {
+      throw new ConflictException('Reservation dates cannot be in the past');
+    }
 
     // Check for intersecting reservations
-    // TODO: fix it, not working
-    // [
-    //   {
-    //       "_id": "66eadd6c5abfc5e5b2f36173",
-    //       "userId": "66cdd9f9b49de9b6b8a67bd2",
-    //       "hotel": "66c611e08813595ca9a3cf9b",
-    //       "roomId": "66cb46dcf3c88e12f039fa73",
-    //       "dateStart": "2024-09-15T00:00:00.000Z",
-    //       "dateEnd": "2024-09-16T00:00:00.000Z",
-    //       "__v": 0
-    //   },
-    //   {
-    //       "_id": "66eaddba5abfc5e5b2f36185",
-    //       "userId": "66cdd9f9b49de9b6b8a67bd2",
-    //       "hotel": "66c611e08813595ca9a3cf9b",
-    //       "roomId": "66cb46dcf3c88e12f039fa73",
-    //       "dateStart": "2024-09-15T00:00:00.000Z",
-    //       "dateEnd": "2024-09-16T00:00:00.000Z",
-    //       "__v": 0
-    //   }
-    // ]
     const intersectingReservations = await this.reservationRepository
       .findOne({
         roomId: hotelRoom,
         $or: [
-          { dateStart: { $lte: dateEnd }, endDate: { $gte: dateStart } }, // Existing reservation starts before new end date and ends after new start date
+          {
+            dateStart: { $lte: dateEnd },
+            dateEnd: { $gte: dateStart },
+          },
         ],
       })
       .exec();
+
     if (intersectingReservations) {
       throw new ConflictException(
         `The room with id=${hotelRoom} is already reserved for the selected dates`,
