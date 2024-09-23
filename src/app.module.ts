@@ -11,6 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { HotelModule } from './hotel/hotel.module';
 import { ReservationModule } from './reservation/reservation.module';
 import { ChatModule } from './chat/chat.module';
+import { AppGateway } from './app.gateway';
 
 @Module({
   imports: [
@@ -33,6 +34,6 @@ import { ChatModule } from './chat/chat.module';
   ],
   // TODO: check controllers, maybe i should delete it
   controllers: [AppController, AuthController],
-  providers: [AppService],
+  providers: [AppService, AppGateway],
 })
 export class AppModule {}
