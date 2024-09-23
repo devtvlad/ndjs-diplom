@@ -19,3 +19,9 @@ export const checkUserManagerRole = (user: User) => {
     throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
   }
 };
+
+export const checkUserClientOrManagerRole = (user: User) => {
+  if (user.role !== Role.Client && user.role !== Role.Manager) {
+    throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
+  }
+};

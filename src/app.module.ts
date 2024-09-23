@@ -10,6 +10,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { HotelModule } from './hotel/hotel.module';
 import { ReservationModule } from './reservation/reservation.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ReservationModule } from './reservation/reservation.module';
     PassportModule,
     HotelModule,
     ReservationModule,
+    ChatModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: {
