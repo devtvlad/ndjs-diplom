@@ -16,7 +16,6 @@ import { CreateReservationDto } from './dto';
 import { LoggingInterceptor } from '../app.logging.interceptor';
 import { ObjectId } from 'mongodb';
 import { ParseObjectIdPipe } from '../common/parse.objectid.pipe';
-import { Reservation } from './reservation.schema';
 import { UserDocument } from '../user/user.schema';
 import { GetUser } from '../user/user.decorator';
 import { ValidationPipe } from '../common/validation.pipe';
