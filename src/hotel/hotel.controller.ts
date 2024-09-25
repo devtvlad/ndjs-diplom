@@ -22,18 +22,23 @@ import {
   SearchHotelParamsDto,
   SearchHotelRoomParamsDto,
 } from './dto';
-import { Hotel, HotelRoom } from './hotel.schema';
 import { LoggingInterceptor } from './../app.logging.interceptor';
 import { ValidationPipe } from '../common/validation.pipe';
 import { FileValidationPipe } from '../common/file.validation.pipe';
 import { ParseObjectIdPipe } from '../common/parse.objectid.pipe';
-import { ObjectId } from 'mongodb';
+import { ObjectId } from 'mongoose';
 import { GetUser } from '../user/user.decorator';
-import { User } from '../user/user.schema';
+import { UserDocument } from '../user/user.schema';
 import { Res } from '@nestjs/common';
 import { Response } from 'express';
 import { checkUserAdminRole } from '../common/utils';
 import { CurrentUserInspectorGuard } from '../auth/current.user.inspector.guard';
+import {
+  HotelRoomRO,
+  HotelRoomDetailRO,
+  HotelRO,
+  CreateOrUpdateHotelRoomRO,
+} from './hotel.interface';
 
 @UseInterceptors(LoggingInterceptor)
 @Controller('api')
@@ -43,17 +48,17 @@ export class HotelController {
   @Get('/common/hotel-rooms/')
   @UseGuards(CurrentUserInspectorGuard)
   async getAll(
-    @GetUser() user: User,
+    @GetUser() user: UserDocument,
     @Query(new ValidationPipe())
     searchHotelRoomParamsDto: SearchHotelRoomParamsDto,
-  ): Promise<HotelRoom[]> {
+  ): Promise<HotelRoomRO[]> {
     return await this.hotelService.getAll(searchHotelRoomParamsDto, user?.role);
   }
 
   @Get('/common/hotel-rooms/:id')
   async findById(
     @Param('id', ParseObjectIdPipe) id: ObjectId,
-  ): Promise<HotelRoom> {
+  ): Promise<HotelRoomDetailRO> {
     return await this.hotelService.findById(id);
   }
 
@@ -61,9 +66,9 @@ export class HotelController {
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ValidationPipe())
   async createHotelByAdmin(
-    @GetUser() user: User,
+    @GetUser() user: UserDocument,
     @Body(new ValidationPipe()) createHotelDto: CreateHotelDto,
-  ): Promise<Hotel> {
+  ): Promise<HotelRO> {
     checkUserAdminRole(user);
     return await this.hotelService.createHotel(createHotelDto);
   }
@@ -73,9 +78,9 @@ export class HotelController {
   @UsePipes(new ValidationPipe())
   // TODO: add query params
   async getHotelsByAdmin(
-    @GetUser() user: User,
+    @GetUser() user: UserDocument,
     @Query(new ValidationPipe()) searchHotelParamsDto: SearchHotelParamsDto,
-  ): Promise<Hotel[]> {
+  ): Promise<HotelRO[]> {
     checkUserAdminRole(user);
     return await this.hotelService.getHotels(searchHotelParamsDto);
   }
@@ -84,10 +89,10 @@ export class HotelController {
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ValidationPipe())
   async updateHotelByAdmin(
-    @GetUser() user: User,
+    @GetUser() user: UserDocument,
     @Param('id', ParseObjectIdPipe) id: ObjectId,
     @Body(new ValidationPipe()) updateHotelDto: UpdateHotelDto,
-  ): Promise<Hotel> {
+  ): Promise<HotelRO> {
     checkUserAdminRole(user);
     return await this.hotelService.updateHotel(id, updateHotelDto);
   }
@@ -97,10 +102,10 @@ export class HotelController {
   @UsePipes(new ValidationPipe())
   @UseInterceptors(FilesInterceptor('files'))
   async createHotelRoomByAdmin(
-    @GetUser() user: User,
+    @GetUser() user: UserDocument,
     @Body(new ValidationPipe()) createHotelRoomDto: CreateHotelRoomDto,
     @UploadedFiles(new FileValidationPipe()) files: Array<any>, // TODO: fix type
-  ): Promise<HotelRoom> {
+  ): Promise<CreateOrUpdateHotelRoomRO> {
     checkUserAdminRole(user);
     return await this.hotelService.createHotelRoom(createHotelRoomDto, files);
   }
@@ -128,11 +133,11 @@ export class HotelController {
   @UsePipes(new ValidationPipe())
   @UseInterceptors(FilesInterceptor('files'))
   async updateHotelRoomByAdmin(
-    @GetUser() user: User,
+    @GetUser() user: UserDocument,
     @Param('id', ParseObjectIdPipe) id: ObjectId,
     @Body(new ValidationPipe()) updateHotelRoomDto: UpdateHotelRoomDto,
     @UploadedFiles(new FileValidationPipe()) files: Array<any>, // TODO: fix type
-  ): Promise<HotelRoom> {
+  ): Promise<CreateOrUpdateHotelRoomRO> {
     checkUserAdminRole(user);
     return await this.hotelService.updateHotelRoom(
       id,

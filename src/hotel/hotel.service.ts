@@ -5,7 +5,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { Connection, Model } from 'mongoose';
+import { Connection, Model, ObjectId } from 'mongoose';
 import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import {
   CreateHotelDto,
@@ -21,8 +21,13 @@ import {
   HotelRoom,
   HotelRoomDocument,
 } from './hotel.schema';
-import { ObjectId } from 'mongodb';
 import { Role } from '../user/user.interface';
+import {
+  HotelRoomRO,
+  HotelRoomDetailRO,
+  HotelRO,
+  CreateOrUpdateHotelRoomRO,
+} from './hotel.interface';
 
 @Injectable()
 export class HotelService {
@@ -36,7 +41,7 @@ export class HotelService {
   public async getAll(
     searchHotelRoomParamsDto: SearchHotelRoomParamsDto,
     role: Role | undefined,
-  ): Promise<HotelRoom[]> {
+  ): Promise<HotelRoomRO[]> {
     const { limit, offset, hotel } = searchHotelRoomParamsDto;
 
     let hotelRooms = undefined;
@@ -47,6 +52,7 @@ export class HotelService {
         .find({ hotel: hotel, isEnabled: true })
         .skip(offset)
         .limit(limit)
+        .populate('hotel', 'id title') // load only id & title from Hotel
         .exec();
     } // show any enabled (isEnabled=true) or disabled (isEnabled=false) for admins and managers
     else if (role === Role.Admin || role === Role.Manager) {
@@ -54,21 +60,43 @@ export class HotelService {
         .find({ hotel: hotel })
         .skip(offset)
         .limit(limit)
+        .populate('hotel', 'id title') // load only id & title from Hotel
         .exec();
     }
 
-    // TODO: change resp fields
-    return hotelRooms as unknown as HotelRoom[];
+    return hotelRooms.map((hotelRoom) => ({
+      id: hotelRoom._id,
+      description: hotelRoom.description,
+      images: hotelRoom.images,
+      hotel: {
+        id: hotelRoom.hotel._id,
+        title: hotelRoom.hotel.title,
+      },
+    }));
   }
 
-  public async findById(id: ObjectId): Promise<HotelRoom> {
+  public async findById(id: ObjectId): Promise<HotelRoomDetailRO> {
     const hotelRoom = await this.hotelRoomRepository
       .findOne({ _id: id })
+      .populate('hotel', 'id title description')
       .exec();
-    return hotelRoom;
+
+    // Workaround (cast the type of hotelRoom.hotel so that TypeScript recognizes the existence of _id)
+    const hotel = hotelRoom.hotel as Hotel & { _id: ObjectId };
+
+    return {
+      id: hotelRoom._id,
+      description: hotelRoom.description,
+      images: hotelRoom.images,
+      hotel: {
+        id: hotel._id,
+        title: hotel.title,
+        description: hotel.description,
+      },
+    };
   }
 
-  public async createHotel(createHotelDto: CreateHotelDto): Promise<Hotel> {
+  public async createHotel(createHotelDto: CreateHotelDto): Promise<HotelRO> {
     const existing = await this.hotelRepository
       .findOne({ title: createHotelDto.title })
       .exec();
@@ -83,12 +111,16 @@ export class HotelService {
     });
     const savedHotel = await newHotel.save();
 
-    return savedHotel;
+    return {
+      id: savedHotel._id,
+      title: savedHotel.title,
+      description: savedHotel.description,
+    };
   }
 
   public async getHotels(
     searchHotelRoomParamsDto: SearchHotelParamsDto,
-  ): Promise<Hotel[]> {
+  ): Promise<HotelRO[]> {
     const query: any = {};
 
     // search by <param> with case sensitive
@@ -96,19 +128,23 @@ export class HotelService {
       query.title = { $regex: searchHotelRoomParamsDto.title, $options: 'i' };
     }
 
-    const hotelRooms = await this.hotelRepository
+    const hotels = await this.hotelRepository
       .find({ title: query.title })
       .skip(searchHotelRoomParamsDto.offset)
       .limit(searchHotelRoomParamsDto.limit)
       .exec();
 
-    return hotelRooms as unknown as Hotel[];
+    return hotels.map((hotel) => ({
+      id: hotel._id,
+      title: hotel.title,
+      description: hotel.description,
+    }));
   }
 
   public async updateHotel(
     id: ObjectId,
     updateHotelDto: UpdateHotelDto,
-  ): Promise<Hotel> {
+  ): Promise<HotelRO> {
     const updatedHotel = await this.hotelRepository
       .findByIdAndUpdate(
         { _id: id },
@@ -119,14 +155,18 @@ export class HotelService {
     if (!updatedHotel) {
       throw new NotFoundException(`Hotel with id=${id} is not exists`);
     }
-    // TODO: change resp fields
-    return updatedHotel.toJSON() as unknown as Hotel;
+
+    return {
+      id: updatedHotel._id,
+      title: updatedHotel.title,
+      description: updatedHotel.description,
+    };
   }
 
   public async createHotelRoom(
     createHotelRoomDto: CreateHotelRoomDto,
     files: Array<any>, // TODO: fix type
-  ): Promise<HotelRoom> {
+  ): Promise<CreateOrUpdateHotelRoomRO> {
     const existing = await this.hotelRepository
       .findById({ _id: createHotelRoomDto.hotel })
       .exec();
@@ -180,7 +220,17 @@ export class HotelService {
 
     const savedHotelRoom = await newHotelRoom.save();
 
-    return savedHotelRoom;
+    return {
+      id: savedHotelRoom._id,
+      description: savedHotelRoom.description,
+      images: savedHotelRoom.images,
+      isEnabled: savedHotelRoom.isEnabled,
+      hotel: {
+        id: existing._id,
+        title: existing.title,
+        description: existing.description,
+      },
+    };
   }
 
   // For testing purpose only
@@ -200,7 +250,7 @@ export class HotelService {
     id: ObjectId,
     updateHotelRoomDto: UpdateHotelRoomDto,
     files: Array<any>, // TODO: fix type
-  ): Promise<HotelRoom> {
+  ): Promise<CreateOrUpdateHotelRoomRO> {
     const existing = await this.hotelRepository
       .findById({ _id: updateHotelRoomDto.hotel })
       .exec();
@@ -260,6 +310,16 @@ export class HotelService {
       )
       .exec();
 
-    return updatedHotelRoom.toJSON() as unknown as HotelRoom;
+    return {
+      id: updatedHotelRoom._id,
+      description: updatedHotelRoom.description,
+      images: updatedHotelRoom.images,
+      isEnabled: updatedHotelRoom.isEnabled,
+      hotel: {
+        id: existing._id,
+        title: existing.title,
+        description: existing.description,
+      },
+    };
   }
 }
