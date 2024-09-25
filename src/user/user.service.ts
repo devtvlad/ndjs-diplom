@@ -8,7 +8,9 @@ import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto, SearchUserParamsDto, RegisterClientDto } from './dto';
 import { User, UserDocument } from './user.schema';
-import { ObjectId } from 'mongodb';
+// import { ObjectId } from 'mongodb';
+import { RegisterClientRO, CreateUserRO } from '../auth/auth.interface';
+import { UserRO } from './user.interface';
 
 @Injectable()
 export class UserService {
@@ -17,47 +19,57 @@ export class UserService {
     @InjectConnection() private connection: Connection,
   ) {}
 
-  public async registerClient(data: RegisterClientDto): Promise<UserDocument> {
+  public async registerClient(
+    registerClientDto: RegisterClientDto,
+  ): Promise<RegisterClientRO> {
     const existing = await this.userRepository
-      .findOne({ email: data.email })
+      .findOne({ email: registerClientDto.email })
       .exec();
     if (existing) {
       throw new ConflictException('User with this email already exists');
     }
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashedPassword = await bcrypt.hash(registerClientDto.password, 10);
 
     const newUser = new this.userRepository({
-      email: data.email,
+      email: registerClientDto.email,
       passwordHash: hashedPassword,
-      name: data.name,
-      contactPhone: data.contactPhone,
+      name: registerClientDto.name,
+      contactPhone: registerClientDto.contactPhone,
     });
     const savedUser = await newUser.save();
 
-    delete savedUser.passwordHash;
-    return savedUser.toJSON() as unknown as UserDocument;
+    return {
+      id: savedUser._id,
+      email: savedUser.email,
+      name: savedUser.name,
+    };
   }
 
-  public async createUser(data: CreateUserDto): Promise<UserDocument> {
+  public async createUser(createUserDto: CreateUserDto): Promise<CreateUserRO> {
     const existing = await this.userRepository
-      .findOne({ email: data.email })
+      .findOne({ email: createUserDto.email })
       .exec();
     if (existing) {
       throw new ConflictException('User with this email already exists');
     }
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
     const newUser = new this.userRepository({
-      email: data.email,
+      email: createUserDto.email,
       passwordHash: hashedPassword,
-      name: data.name,
-      contactPhone: data.contactPhone,
-      role: data.role,
+      name: createUserDto.name,
+      contactPhone: createUserDto.contactPhone,
+      role: createUserDto.role,
     });
     const savedUser = await newUser.save();
 
-    delete savedUser.passwordHash;
-    return savedUser.toJSON() as unknown as UserDocument;
+    return {
+      id: savedUser._id,
+      email: savedUser.email,
+      name: savedUser.name,
+      contactPhone: savedUser.contactPhone,
+      role: savedUser.role,
+    };
   }
 
   public async findByEmail(email: string): Promise<UserDocument> {
@@ -65,23 +77,12 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`User with this email is not exists`);
     }
-    // TODO: cant login if I delete password here
-    // user.passwordHash = undefined;
-    return user.toJSON() as unknown as UserDocument;
-  }
-
-  public async findById(id: ObjectId): Promise<UserDocument> {
-    const user = await this.userRepository.findById({ _id: id }).exec();
-    if (!user) {
-      throw new NotFoundException(`User with this id is not exists`);
-    }
-    user.passwordHash = undefined; // TODO: think about better way to remove passwordHash
-    return user.toJSON() as unknown as UserDocument;
+    return user;
   }
 
   public async findAll(
     searchUserParamsDto: SearchUserParamsDto,
-  ): Promise<UserDocument[]> {
+  ): Promise<UserRO[]> {
     const query: any = {};
 
     // search by <param> with case sensitive
@@ -100,18 +101,17 @@ export class UserService {
       };
     }
 
-    // const users = await this.userRepository.find(query).exec();
-    // return users.map((user) => user.toJSON() as unknown as UserDocument);
     const users = await this.userRepository
       .find(query)
       .skip(searchUserParamsDto.offset)
       .limit(searchUserParamsDto.limit)
       .exec();
-    // TODO: change resp fields
-    return users.map((user) => {
-      user = user.toJSON();
-      delete user.passwordHash;
-      return user as UserDocument;
-    });
+
+    return users.map((user) => ({
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      contactPhone: user.contactPhone,
+    }));
   }
 }

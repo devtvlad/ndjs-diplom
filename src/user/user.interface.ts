@@ -3,3 +3,10 @@ export enum Role {
   Admin = 'admin',
   Manager = 'manager',
 }
+
+export interface UserRO {
+  id: string;
+  email: string;
+  name: string;
+  contactPhone: string;
+}

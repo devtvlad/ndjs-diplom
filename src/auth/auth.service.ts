@@ -28,12 +28,10 @@ export class AuthService {
     if (!validatePassword) {
       throw new UnauthorizedException('invalid password');
     }
-    delete user.passwordHash;
     return {
       token: this.jwtService.sign({
         email,
       }),
-      // id: user._id,
       email: user.email,
       name: user.name,
       contactPhone: user.contactPhone,
@@ -45,8 +43,7 @@ export class AuthService {
   ): Promise<RegisterClientRO> {
     const user = await this.userService.registerClient(registerClientDto);
     return {
-      token: this.jwtService.sign({ email: user.email }),
-      id: user._id,
+      id: user.id,
       email: user.email,
       name: user.name,
     };
@@ -55,7 +52,7 @@ export class AuthService {
   async createUser(createUserDto: CreateUserDto): Promise<CreateUserRO> {
     const user = await this.userService.createUser(createUserDto);
     return {
-      id: user._id,
+      id: user.id,
       email: user.email,
       name: user.name,
       contactPhone: user.contactPhone,
@@ -65,6 +62,7 @@ export class AuthService {
 
   async logout(token: string) {
     try {
+      // TODO: just check if token is valid and delete it from cookie on frontend
       await this.jwtService.verify(token);
       return { message: 'Logout successful' };
     } catch (error) {

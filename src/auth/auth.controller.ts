@@ -6,8 +6,6 @@ import {
   UseInterceptors,
   UseGuards,
   UsePipes,
-  HttpException,
-  HttpStatus,
   Headers,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -18,7 +16,8 @@ import { CreateUserDto, RegisterClientDto } from '../user/dto';
 import { CreateUserRO, RegisterClientRO, LoginUserRO } from './auth.interface';
 import { ValidationPipe } from '../common/validation.pipe';
 import { GetUser } from '../user/user.decorator';
-import { Role } from '../user/user.interface';
+import { UserDocument } from 'src/user/user.schema';
+import { checkUserAdminRole } from '../common/utils';
 
 @UseInterceptors(LoggingInterceptor)
 @Controller('api')
@@ -54,12 +53,10 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ValidationPipe())
   createUser(
-    @GetUser() user,
+    @GetUser() user: UserDocument,
     @Body(new ValidationPipe()) createUserDto: CreateUserDto,
   ): Promise<CreateUserRO> {
-    if (user.role !== Role.Admin) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN); // TODO: fix forbidden msg
-    }
+    checkUserAdminRole(user);
     return this.authService.createUser(createUserDto);
   }
 }

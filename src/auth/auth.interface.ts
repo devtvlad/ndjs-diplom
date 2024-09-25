@@ -17,7 +17,6 @@ export interface CreateUserRO {
 }
 
 export interface RegisterClientRO {
-  token: string;
   id: ObjectId;
   email: string;
   name: string;
