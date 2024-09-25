@@ -10,6 +10,7 @@ import { CreateReservationDto } from './dto';
 import { Reservation, ReservationDocument } from './reservation.schema';
 import { ObjectId } from 'mongodb';
 import { HotelRoom, HotelRoomDocument } from '../hotel/hotel.schema';
+import { ReservationRO } from './reservation.interface';
 
 @Injectable()
 export class ReservationService {
@@ -24,13 +25,14 @@ export class ReservationService {
   public async createReservation(
     createReservationDto: CreateReservationDto,
     userId: ObjectId,
-  ): Promise<Reservation> {
+  ): Promise<ReservationRO> {
     const { hotelRoom, dateStart, dateEnd } = createReservationDto;
 
     // Check for existing hotelRoom
     const existingHotelRoom = await this.hotelRoomRepository.findById({
       _id: hotelRoom,
     });
+
     if (!existingHotelRoom) {
       throw new NotFoundException(
         `The room with id=${hotelRoom} does not exist`,
@@ -79,24 +81,62 @@ export class ReservationService {
       dateEnd: new Date(dateEnd),
     });
     const savedReservation = await newReservation.save();
-    // TODO: change resp fields
-    return savedReservation;
-  }
 
-  public async getReservations(userId: ObjectId): Promise<Reservation[]> {
-    // Check for intersecting reservations
-    const reservations = await this.reservationRepository
-      .find({ userId: userId })
+    const populatedReservation = await this.reservationRepository
+      .findById(savedReservation._id)
+      .populate({
+        path: 'roomId',
+        populate: {
+          path: 'hotel',
+          model: 'Hotel',
+        },
+      })
       .exec();
 
-    // TODO: change resp fields
-    return reservations;
+    return {
+      startDate: populatedReservation.dateStart.toISOString(),
+      endDate: populatedReservation.dateEnd.toISOString(),
+      hotelRoom: {
+        description: populatedReservation.roomId.description,
+        images: populatedReservation.roomId.images,
+      },
+      hotel: {
+        title: populatedReservation.roomId.hotel.title,
+        description: populatedReservation.roomId.hotel.description,
+      },
+    };
+  }
+
+  public async getReservations(userId: ObjectId): Promise<ReservationRO[]> {
+    const populatedReservations = await this.reservationRepository
+      .find({ userId: userId })
+      .populate({
+        path: 'roomId',
+        populate: {
+          path: 'hotel',
+          model: 'Hotel',
+        },
+      })
+      .exec();
+
+    return populatedReservations.map((reservation) => ({
+      startDate: reservation.dateStart.toISOString(),
+      endDate: reservation.dateEnd.toISOString(),
+      hotelRoom: {
+        description: reservation.roomId.description,
+        images: reservation.roomId.images,
+      },
+      hotel: {
+        title: reservation.roomId.hotel.title,
+        description: reservation.roomId.hotel.description,
+      },
+    }));
   }
 
   public async deleteReservationByIdForClient(
     reservationId: ObjectId,
     userId: ObjectId,
-  ): Promise<string> {
+  ): Promise<null> {
     const reservation = await this.reservationRepository
       .findOne({ _id: reservationId })
       .exec();
@@ -113,26 +153,44 @@ export class ReservationService {
       );
     }
 
+    // TODO: create negative case for unavailable deleting old reservation
+
     await this.reservationRepository.deleteOne({ _id: reservationId });
 
-    return 'Reservation deleted successfully';
+    return null;
   }
 
   public async getClientReservations(
     clientId: ObjectId,
-  ): Promise<Reservation[]> {
-    // Check for intersecting reservations
-    const reservations = await this.reservationRepository
+  ): Promise<ReservationRO[]> {
+    const populatedReservations = await this.reservationRepository
       .find({ userId: clientId })
+      .populate({
+        path: 'roomId',
+        populate: {
+          path: 'hotel',
+          model: 'Hotel',
+        },
+      })
       .exec();
 
-    // TODO: change resp fields
-    return reservations;
+    return populatedReservations.map((reservation) => ({
+      startDate: reservation.dateStart.toISOString(),
+      endDate: reservation.dateEnd.toISOString(),
+      hotelRoom: {
+        description: reservation.roomId.description,
+        images: reservation.roomId.images,
+      },
+      hotel: {
+        title: reservation.roomId.hotel.title,
+        description: reservation.roomId.hotel.description,
+      },
+    }));
   }
 
   public async deleteReservationByIdForManager(
     reservationId: ObjectId,
-  ): Promise<string> {
+  ): Promise<null> {
     const reservation = await this.reservationRepository
       .findOne({ _id: reservationId })
       .exec();
@@ -145,6 +203,6 @@ export class ReservationService {
 
     await this.reservationRepository.deleteOne({ _id: reservationId });
 
-    return 'Reservation deleted successfully';
+    return null;
   }
 }

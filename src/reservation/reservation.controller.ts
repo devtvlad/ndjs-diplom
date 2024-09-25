@@ -7,9 +7,8 @@ import {
   Body,
   Param,
   UseGuards,
-  Query,
-  Put,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReservationService } from './reservation.service';
@@ -22,6 +21,7 @@ import { UserDocument } from '../user/user.schema';
 import { GetUser } from '../user/user.decorator';
 import { ValidationPipe } from '../common/validation.pipe';
 import { checkUserClientRole, checkUserManagerRole } from '../common/utils';
+import { ReservationRO } from './reservation.interface';
 
 @UseInterceptors(LoggingInterceptor)
 @Controller('api')
@@ -34,7 +34,7 @@ export class ReservationController {
   async createReservation(
     @GetUser() user: UserDocument,
     @Body(new ValidationPipe()) createReservationDto: CreateReservationDto,
-  ): Promise<Reservation> {
+  ): Promise<ReservationRO> {
     checkUserClientRole(user);
     const userId: ObjectId = user._id;
     return await this.reservationService.createReservation(
@@ -45,7 +45,9 @@ export class ReservationController {
 
   @Get('/client/reservations/')
   @UseGuards(AuthGuard('jwt'))
-  async getReservations(@GetUser() user: UserDocument): Promise<Reservation[]> {
+  async getReservations(
+    @GetUser() user: UserDocument,
+  ): Promise<ReservationRO[]> {
     checkUserClientRole(user);
     const userId: ObjectId = user._id;
     return await this.reservationService.getReservations(userId);
@@ -53,10 +55,11 @@ export class ReservationController {
 
   @Delete('/client/reservations/:id')
   @UseGuards(AuthGuard('jwt'))
+  @HttpCode(204) // for no content response
   async deleteReservationByIdForClient(
     @GetUser() user: UserDocument,
     @Param('id', ParseObjectIdPipe) reservationId: ObjectId,
-  ): Promise<string> {
+  ): Promise<null> {
     checkUserClientRole(user);
     const userId: ObjectId = user._id;
     return await this.reservationService.deleteReservationByIdForClient(
@@ -70,17 +73,18 @@ export class ReservationController {
   async getClientReservations(
     @GetUser() user: UserDocument,
     @Param('userId', ParseObjectIdPipe) clientId: ObjectId,
-  ): Promise<Reservation[]> {
+  ): Promise<ReservationRO[]> {
     checkUserManagerRole(user);
     return await this.reservationService.getClientReservations(clientId);
   }
 
   @Delete('/manager/reservations/:id')
   @UseGuards(AuthGuard('jwt'))
+  @HttpCode(204) // for no content response
   async deleteReservationByIdForManager(
     @GetUser() user: UserDocument,
     @Param('id', ParseObjectIdPipe) reservationId: ObjectId,
-  ): Promise<string> {
+  ): Promise<null> {
     checkUserManagerRole(user);
     return await this.reservationService.deleteReservationByIdForManager(
       reservationId,
