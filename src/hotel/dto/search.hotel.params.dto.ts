@@ -1,17 +1,9 @@
-import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  // IsNumber,
-  IsOptional,
-} from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsOptional } from 'class-validator';
 
 export class SearchHotelParamsDto {
-  // @IsNumber()
   @IsNotEmpty()
   limit: number;
 
-  // @IsNumber()
   @IsNotEmpty()
   offset: number;
 

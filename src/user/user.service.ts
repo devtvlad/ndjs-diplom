@@ -8,7 +8,6 @@ import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto, SearchUserParamsDto, RegisterClientDto } from './dto';
 import { User, UserDocument } from './user.schema';
-// import { ObjectId } from 'mongodb';
 import { RegisterClientRO, CreateUserRO } from '../auth/auth.interface';
 import { UserRO } from './user.interface';
 

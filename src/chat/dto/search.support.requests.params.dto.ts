@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsBoolean } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
 export class SearchSupportRequestsParamsDto {
   @IsNotEmpty()
@@ -9,6 +9,5 @@ export class SearchSupportRequestsParamsDto {
 
   @IsNotEmpty()
   // TODO: check why isBoolean not working
-  // @IsBoolean()
   isActive: boolean;
 }

@@ -3,16 +3,13 @@ import {
   IsNotEmpty,
   MinLength,
   MaxLength,
-  // IsNumber,
   IsOptional,
 } from 'class-validator';
 
 export class SearchUserParamsDto {
-  // @IsNumber()
   @IsNotEmpty()
   limit: number;
 
-  // @IsNumber()
   @IsNotEmpty()
   offset: number;
 

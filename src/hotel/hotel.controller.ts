@@ -76,7 +76,6 @@ export class HotelController {
   @Get('/admin/hotels/')
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ValidationPipe())
-  // TODO: add query params
   async getHotelsByAdmin(
     @GetUser() user: UserDocument,
     @Query(new ValidationPipe()) searchHotelParamsDto: SearchHotelParamsDto,

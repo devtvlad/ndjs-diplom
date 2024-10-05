@@ -10,7 +10,6 @@ import {
 } from './chat.schema';
 import { UserService } from '../user/user.service';
 import { UserSchema, User } from '../user/user.schema';
-// import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -19,12 +18,6 @@ import { UserSchema, User } from '../user/user.schema';
       { name: Message.name, schema: MessageSchema },
       { name: User.name, schema: UserSchema },
     ]),
-    // JwtModule.register({
-    //   secret: process.env.JWT_SECRET,
-    //   signOptions: {
-    //     expiresIn: process.env.JWT_EXPIRATION,
-    //   },
-    // }),
   ],
   providers: [ChatService, UserService],
   controllers: [ChatController],

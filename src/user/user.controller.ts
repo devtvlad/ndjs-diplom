@@ -1,8 +1,6 @@
 import {
   Controller,
   Get,
-  // NotFoundException,
-  // Param,
   UseInterceptors,
   UsePipes,
   UseGuards,
@@ -13,8 +11,6 @@ import { UserService } from './user.service';
 import { UserDocument } from './user.schema';
 import { LoggingInterceptor } from '../app.logging.interceptor';
 import { ValidationPipe } from '../common/validation.pipe';
-// import { ParseObjectIdPipe } from '../common/parse.objectid.pipe';
-// import { ObjectId } from 'mongodb';
 import { SearchUserParamsDto } from './dto';
 import { GetUser } from '../user/user.decorator';
 import { checkUserAdminRole, checkUserManagerRole } from '../common/utils';
@@ -46,13 +42,4 @@ export class UserController {
     checkUserManagerRole(user);
     return await this.userService.findAll(searchUserParamsDto);
   }
-
-  // @Get('/email/:email')
-  // async findByEmail(@Param('email') email: string): Promise<User> {
-  //   const user = await this.userService.findByEmail(email);
-  //   if (!user) {
-  //     throw new NotFoundException(`User with email=${email} not found`);
-  //   }
-  //   return user;
-  // }
 }
