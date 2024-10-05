@@ -42,11 +42,9 @@ export class ChatService {
     createMessageDto: CreateMessageDto,
     userId: ObjectId,
   ): Promise<SupportRequestForClientRO[]> {
-    const newSupportRequest = new this.supportRequestRepository({
+    const newSupportRequest = await this.supportRequestRepository.create({
       user: userId,
     });
-
-    const savedSupportRequest = await newSupportRequest.save();
 
     const newMessage = new this.messageRepository({
       author: userId,
@@ -55,16 +53,19 @@ export class ChatService {
 
     const savedMessage = await newMessage.save();
 
-    savedSupportRequest.messages.push(savedMessage._id);
-
-    await savedSupportRequest.save();
+    const updatedSupportRequest =
+      await this.supportRequestRepository.findByIdAndUpdate(
+        newSupportRequest._id,
+        { $push: { messages: savedMessage._id } },
+        { new: true },
+      );
 
     // TODO: add logic for hasNewMessages
     const response: SupportRequestForClientRO[] = [
       {
-        id: savedSupportRequest._id.toString(),
-        createdAt: savedSupportRequest.createdAt.toISOString(),
-        isActive: savedSupportRequest.isActive,
+        id: updatedSupportRequest._id.toString(),
+        createdAt: updatedSupportRequest.createdAt.toISOString(),
+        isActive: updatedSupportRequest.isActive,
         hasNewMessages: true,
       },
     ];
