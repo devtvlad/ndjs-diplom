@@ -35,7 +35,7 @@ import {
 } from './chat.interface';
 
 @UseInterceptors(LoggingInterceptor)
-@Controller('api')
+@Controller('/')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 

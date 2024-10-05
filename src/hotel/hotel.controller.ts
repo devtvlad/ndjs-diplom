@@ -41,7 +41,7 @@ import {
 } from './hotel.interface';
 
 @UseInterceptors(LoggingInterceptor)
-@Controller('api')
+@Controller('/')
 export class HotelController {
   constructor(private readonly hotelService: HotelService) {}
 

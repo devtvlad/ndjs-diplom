@@ -21,7 +21,7 @@ import { checkUserAdminRole, checkUserManagerRole } from '../common/utils';
 import { UserRO } from './user.interface';
 
 @UseInterceptors(LoggingInterceptor)
-@Controller('api')
+@Controller('/')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

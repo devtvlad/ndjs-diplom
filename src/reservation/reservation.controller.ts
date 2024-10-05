@@ -23,7 +23,7 @@ import { checkUserClientRole, checkUserManagerRole } from '../common/utils';
 import { ReservationRO } from './reservation.interface';
 
 @UseInterceptors(LoggingInterceptor)
-@Controller('api')
+@Controller('/')
 export class ReservationController {
   constructor(private readonly reservationService: ReservationService) {}
 

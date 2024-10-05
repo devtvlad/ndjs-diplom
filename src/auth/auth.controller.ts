@@ -20,7 +20,7 @@ import { UserDocument } from 'src/user/user.schema';
 import { checkUserAdminRole } from '../common/utils';
 
 @UseInterceptors(LoggingInterceptor)
-@Controller('api')
+@Controller('/')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
