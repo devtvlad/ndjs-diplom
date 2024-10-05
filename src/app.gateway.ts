@@ -46,7 +46,7 @@ export class AppGateway
       client.disconnect();
       return;
     }
-    const messages = await this.chatService.getMessages(chatId, this.user._id);
+    const messages = await this.chatService.getMessages(chatId, this.user);
     client.emit('response_message', messages);
   }
 
